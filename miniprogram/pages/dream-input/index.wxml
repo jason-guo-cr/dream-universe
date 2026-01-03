@@ -1,0 +1,30 @@
+<view class="container">
+  <view class="header">
+    <text class="title">记录梦境</text>
+    <text class="subtitle">让宇宙倾听你的梦境</text>
+  </view>
+
+  <view class="input-section">
+    <textarea 
+      class="dream-input" 
+      placeholder="请描述你的梦境..." 
+      placeholder-class="placeholder"
+      value="{{content}}"
+      bindinput="onContentInput"
+      maxlength="1000"
+      auto-height
+      show-confirm-bar="{{false}}"
+    ></textarea>
+    <view class="char-count">{{content.length}}/1000</view>
+  </view>
+
+  <view class="button-section">
+    <button 
+      class="submit-btn {{isGenerating ? 'disabled' : ''}}" 
+      bindtap="onSubmit" 
+      disabled="{{isGenerating}}"
+    >
+      {{isGenerating ? '生成中...' : '生成梦境'}}
+    </button>
+  </view>
+</view>
