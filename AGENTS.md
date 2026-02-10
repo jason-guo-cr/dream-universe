@@ -1,0 +1,1 @@
+You MUST read the cloudbase-guidelines skill FIRST when working with CloudBase projects.
