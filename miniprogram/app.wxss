@@ -1,27 +1,203 @@
-/**app.wxss**/
-.container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  box-sizing: border-box;
-} 
-
-button {
-  background: initial;
-}
-
-button:focus{
-  outline: 0;
-}
-
-button::after{
-  border: none;
-}
-
-
+/* app.wxss - 宇宙深潜 2.0 */
 page {
-  background: #f6f6f6;
+  background:
+    radial-gradient(160% 120% at 10% -10%, rgba(80, 148, 235, 0.2) 0%, transparent 48%),
+    radial-gradient(110% 90% at 88% -6%, rgba(42, 210, 180, 0.12) 0%, transparent 50%),
+    linear-gradient(180deg, #050a12 0%, #081523 44%, #0d1d2a 100%);
+  min-height: 100vh;
+  color: #e7f4ff;
+  font-family: 'Source Han Sans SC', 'HarmonyOS Sans SC', 'PingFang SC', sans-serif;
+}
+
+.container {
+  padding: 30rpx 24rpx 44rpx;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  position: relative;
+  background: linear-gradient(160deg, rgba(16, 34, 52, 0.86) 0%, rgba(12, 28, 44, 0.9) 100%);
+  border-radius: 24rpx;
+  padding: 28rpx;
+  margin-bottom: 20rpx;
+  border: 1rpx solid rgba(104, 168, 224, 0.26);
+  box-shadow:
+    0 18rpx 40rpx rgba(2, 8, 18, 0.56),
+    0 0 0 1rpx rgba(122, 187, 239, 0.08) inset;
+}
+
+.title {
+  font-size: 34rpx;
+  font-weight: 700;
+  color: #bde9ff;
+  margin-bottom: 18rpx;
+  letter-spacing: 0.8rpx;
+}
+
+.quote {
+  font-size: 26rpx;
+  color: #cde7f7;
+  font-style: italic;
+  line-height: 1.8;
+  padding: 26rpx 24rpx;
+  border-left: 5rpx solid #56b9ff;
+  background: linear-gradient(140deg, rgba(22, 47, 75, 0.74) 0%, rgba(13, 33, 55, 0.72) 100%);
+  border-radius: 20rpx;
+  margin: 6rpx 0 18rpx;
+}
+
+.btn {
+  color: #f0fbff;
+  border-radius: 999rpx;
+  padding: 18rpx 38rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  border: none;
+  box-sizing: border-box;
+  line-height: 1.4;
+  text-align: center;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.btn:active {
+  opacity: 0.94;
+  transform: scale(0.988);
+}
+
+.btn-outline {
+  background: linear-gradient(160deg, rgba(22, 44, 68, 0.72) 0%, rgba(16, 38, 57, 0.78) 100%);
+  border: 2rpx solid rgba(110, 184, 245, 0.58);
+  color: #bfe6ff;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #2e73bb 0%, #3ec9c2 100%);
+  box-shadow: 0 12rpx 26rpx rgba(41, 131, 214, 0.34);
+}
+
+.input {
+  background: rgba(9, 23, 37, 0.86);
+  border-radius: 16rpx;
+  padding: 22rpx 24rpx;
+  font-size: 28rpx;
+  color: #e7f4ff;
+  border: 1rpx solid rgba(103, 160, 210, 0.34);
+}
+
+.input::placeholder {
+  color: rgba(177, 207, 232, 0.62);
+}
+
+/* ==================== 空灵时间线 - 全局样式 ==================== */
+
+/* 时间线基础 */
+.timeline {
+  position: relative;
+  padding-left: 28rpx;
+}
+
+/* 时间线轴线 - 更细更空灵 */
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8rpx;
+  top: 0;
+  bottom: 0;
+  width: 1rpx;
+  background: linear-gradient(180deg, 
+    rgba(42, 210, 180, 0.35) 0%, 
+    rgba(42, 210, 180, 0.1) 50%,
+    rgba(42, 210, 180, 0.05) 100%
+  );
+}
+
+/* 时间线项目 */
+.timeline-item {
+  position: relative;
+  margin-bottom: 20rpx;
+  padding-left: 20rpx;
+}
+
+/* 时间线节点 - 发光效果 */
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -26rpx;
+  top: 24rpx;
+  width: 10rpx;
+  height: 10rpx;
+  background: #2ad2b4;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 0 4rpx rgba(42, 210, 180, 0.15),
+    0 0 12rpx rgba(42, 210, 180, 0.4);
+  animation: nodePulse 3s ease-in-out infinite;
+}
+
+@keyframes nodePulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 0 4rpx rgba(42, 210, 180, 0.15),
+      0 0 12rpx rgba(42, 210, 180, 0.4);
+  }
+  50% {
+    box-shadow: 
+      0 0 0 6rpx rgba(42, 210, 180, 0.1),
+      0 0 18rpx rgba(42, 210, 180, 0.5);
+  }
+}
+
+.image-grid {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  margin-top: 18rpx;
+}
+
+.image-grid image {
+  width: 204rpx;
+  height: 204rpx;
+  border-radius: 14rpx;
+  object-fit: cover;
+  border: 1rpx solid rgba(76, 128, 140, 0.45);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6rpx;
+  padding: 8rpx 18rpx;
+  background: rgba(72, 178, 255, 0.12);
+  color: #a9ddff;
+  border-radius: 999rpx;
+  font-size: 22rpx;
+  margin-right: 8rpx;
+  border: 1rpx solid rgba(97, 181, 244, 0.3);
+}
+
+.empty {
+  text-align: left;
+  padding: 70rpx 20rpx;
+  color: rgba(190, 216, 223, 0.78);
+}
+
+.loading {
+  text-align: center;
+  padding: 32rpx;
+  color: rgba(166, 201, 209, 0.76);
+}
+
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(3, 11, 20, 0.72);
+  backdrop-filter: blur(8rpx);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }

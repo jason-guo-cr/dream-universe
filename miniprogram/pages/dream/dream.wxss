@@ -1,0 +1,79 @@
+/* pages/dream/dream.wxss */
+.date-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18rpx 22rpx;
+  background: rgba(9, 23, 37, 0.84);
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(103, 160, 210, 0.34);
+}
+
+.hint {
+  font-size: 24rpx;
+  color: rgba(172, 208, 236, 0.68);
+}
+
+.field-tip {
+  font-size: 24rpx;
+  color: rgba(183, 211, 233, 0.84);
+  margin-bottom: 14rpx;
+}
+
+.content-input {
+  min-height: 320rpx;
+  width: 100%;
+  box-sizing: border-box;
+  line-height: 1.8;
+}
+
+.char-count {
+  text-align: right;
+  font-size: 24rpx;
+  color: rgba(172, 208, 236, 0.68);
+  margin-top: 12rpx;
+}
+
+.actions {
+  margin-top: 28rpx;
+}
+
+.actions .btn {
+  width: 100%;
+  text-align: center;
+  border-radius: 18rpx;
+}
+
+.interpretation {
+  font-size: 28rpx;
+  line-height: 1.9;
+  color: #e7f4ff;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #e7f4ff;
+  background: linear-gradient(160deg, rgba(16, 34, 52, 0.94) 0%, rgba(12, 28, 44, 0.96) 100%);
+  border: 1rpx solid rgba(104, 168, 224, 0.32);
+  border-radius: 20rpx;
+  padding: 30rpx 34rpx;
+  box-shadow: 0 16rpx 34rpx rgba(2, 8, 18, 0.5);
+}
+
+.loading-spinner {
+  width: 80rpx;
+  height: 80rpx;
+  border: 6rpx solid rgba(171, 213, 245, 0.28);
+  border-top-color: #57b9ff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24rpx;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

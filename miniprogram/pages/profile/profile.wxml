@@ -1,0 +1,63 @@
+<!--pages/profile/profile.wxml-->
+<view class="container">
+  <view class="card user-card">
+    <view class="user-info">
+      <image class="avatar" src="{{userInfo.avatarUrl || '/images/default-avatar.png'}}" mode="aspectFill"></image>
+      <view class="user-details">
+        <view class="nickname" wx:if="{{!editingNickname}}">
+          <text>{{userInfo.nickname}}</text>
+          <view class="edit-icon" bindtap="editNickname">编辑</view>
+        </view>
+        <view class="nickname-edit" wx:else>
+          <input class="nickname-input" value="{{tempNickname}}" bindinput="onNicknameInput" maxlength="20"/>
+          <view class="edit-actions">
+            <view class="save-btn" bindtap="saveNickname">保存</view>
+            <view class="cancel-btn" bindtap="cancelEdit">取消</view>
+          </view>
+        </view>
+        <view class="user-id">ID: {{userInfo.openid}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card stats">
+    <view class="stats-item">
+      <view class="stats-number">{{stats.totalDreams}}</view>
+      <view class="stats-label">梦境总数</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-number">{{stats.interpretedDreams}}</view>
+      <view class="stats-label">已解梦</view>
+    </view>
+    <view class="stats-item">
+      <view class="stats-number">{{stats.totalImages}}</view>
+      <view class="stats-label">生成图片</view>
+    </view>
+  </view>
+
+  <view class="card menu">
+    <view class="menu-item" bindtap="goToAllDreams">
+      <text>我的所有梦境</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="clearCache">
+      <text>清除缓存</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="showAbout">
+      <text>关于梦宙编年史</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{showAbout}}" bindtap="hideAbout">
+    <view class="about-popup" catchtap="true">
+      <view class="about-title">梦宙编年史</view>
+      <view class="about-version">Version 1.0.0</view>
+      <view class="about-desc">
+        用AI记录你的梦境，探索潜意识的神秘世界
+      </view>
+      <view class="about-close" bindtap="hideAbout">我知道了</view>
+    </view>
+  </view>
+</view>

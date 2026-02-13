@@ -1,7 +1,8 @@
 {
   "permissions": {
     "openapi": [
-      "wxacode.get"
+      "llm.chat"
     ]
-  }
+  },
+  "timeout": 60
 }

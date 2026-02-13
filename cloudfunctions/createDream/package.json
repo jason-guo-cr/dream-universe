@@ -1,0 +1,12 @@
+{
+  "name": "createDream",
+  "version": "1.0.0",
+  "description": "创建梦境并生成图片",
+  "main": "index.js",
+  "author": "Dream Universe",
+  "license": "MIT",
+  "dependencies": {
+    "@cloudbase/node-sdk": "^3.16.0",
+    "wx-server-sdk": "~2.6.3"
+  }
+}

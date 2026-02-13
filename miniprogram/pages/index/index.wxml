@@ -1,29 +1,113 @@
-<!--index.wxml-->
+<!--pages/index/index.wxml-->
 <view class="container">
-  <view class="title">快速了解云开发</view>
-  <view class="top_tip">免鉴权接口调用 免部署后台 高并发</view>
-  <view class="power" wx:key="title" wx:for="{{powerList}}" wx:for-item="power">
-    <view class="power_info" data-index="{{index}}" data-type="{{ power.type }}" bindtap="onClickPowerInfo">
-      <view class="power_info_text">
-        <view class="power_info_text_title">
-          {{power.title}}
-          <view class="power_info_text_tag" wx:if="{{power.tag}}">{{power.tag}}</view>
-        </view>
-        <view class="power_info_text_tip">{{power.tip}}</view>
+  <view class="cosmos-layer cosmos-layer--one"></view>
+  <view class="cosmos-layer cosmos-layer--two"></view>
+  <view class="cosmos-stars"></view>
+  <view class="nebula-vignette"></view>
+
+  <view class="quote ethereal-fade">
+    "No one care about you, but the universe does, and that says a lot."
+  </view>
+
+  <view class="header-actions ethereal-fade">
+    <view class="record-entry" bindtap="goToCreateDream" hover-class="record-entry--active" hover-stay-time="80">
+      <view class="record-plus">+</view>
+      <view class="record-texts">
+        <text class="record-title">记录梦境</text>
+        <text class="record-subtitle">捕捉昨夜片段</text>
       </view>
-      <image wx:if="{{!power.showItem && power.item.length}}" class="power_info_more" src="../../images/arrow.svg"></image>
-      <image wx:if="{{power.showItem && power.item.length}}" class="power_info_less" src="../../images/arrow.svg"></image>
-      <image wx:if="{{!power.item.length}}" class="power_item_icon" src="../../images/arrow.svg"></image>
     </view>
-    <view wx:if="{{power.showItem}}">
-      <view wx:key="title" wx:for="{{power.item}}">
-        <view class="line"></view>
-        <view class="power_item" bindtap="jumpPage" data-type="{{ item.type }}" data-page="{{item.page}}">
-          <view class="power_item_title">{{item.title}}</view>
-          <image class="power_item_icon" src="../../images/arrow.svg"></image>
+    <view class="btn btn-outline interpret-entry" bindtap="goToInterpret">A公解梦</view>
+  </view>
+
+  <view class="date-filter ethereal-fade">
+    <picker mode="date" fields="month" value="{{selectedMonth}}" bindchange="onMonthChange">
+      <view class="date-picker">
+        <text>{{selectedMonthStr}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 空灵时间线 -->
+  <view class="ethereal-timeline" wx:if="{{groupedDreams.length > 0}}">
+    <view 
+      class="timeline-date-group ethereal-fade"
+      wx:for="{{groupedDreams}}"
+      wx:for-item="group"
+      wx:key="dateKey"
+      style="animation-delay: {{index * 100}}ms"
+    >
+      <!-- 日期节点 - 空灵风格 -->
+      <view class="timeline-date-marker">
+        <view class="date-glow"></view>
+        <view class="date-content">
+          <text class="date-day">{{group.dateStr}}</text>
+          <text class="dream-count" wx:if="{{group.dreams.length > 1}}">{{group.dreams.length}} 个梦境</text>
+        </view>
+      </view>
+      
+      <!-- 该日期的所有梦境 -->
+      <view class="timeline-dreams">
+        <view
+          class="timeline-card ethereal-card"
+          wx:for="{{group.dreams}}"
+          wx:for-item="dream"
+          wx:key="_id"
+          bindtap="viewDream"
+          data-id="{{dream._id}}"
+          hover-class="timeline-card--active"
+          hover-stay-time="100"
+        >
+          <view class="card-glow"></view>
+          <view class="card-content">
+            <view class="dream-header">
+              <text class="dream-index">#{{dream.index}}</text>
+              <view class="dream-tags" wx:if="{{dream.interpretation || dream.images.length > 0}}">
+                <view class="tag tag-glow" wx:if="{{dream.interpretation}}">
+                  <text class="tag-icon">✦</text>
+                  <text>已解梦</text>
+                </view>
+                <view class="tag" wx:if="{{dream.images.length > 0}}">
+                  <text class="tag-icon">◈</text>
+                  <text>{{dream.images.length}} 图</text>
+                </view>
+              </view>
+            </view>
+            
+            <view class="dream-content ethereal-text">{{dream.content}}</view>
+            
+            <view class="dream-images ethereal-images" wx:if="{{dream.images.length > 0}}">
+              <view class="image-wrapper ethereal-image-wrapper" wx:for="{{dream.images}}" wx:for-item="img" wx:key="*this">
+                <image src="{{img}}" mode="aspectFill" catchtap="previewImage" data-src="{{img}}" class="ethereal-image"></image>
+                <view class="image-shimmer"></view>
+              </view>
+            </view>
+          </view>
+          
+          <view class="card-hint">
+            <text class="hint-text">轻触查看详情</text>
+            <view class="hint-line"></view>
+          </view>
         </view>
       </view>
     </view>
   </view>
-  <cloud-tip-modal showTipProps="{{showTip}}" title="{{title}}" content="{{content}}"></cloud-tip-modal>
+
+  <view class="empty ethereal-fade" wx:else>
+    <view class="empty-glow"></view>
+    <view class="empty-icon">✦</view>
+    <text class="empty-title">还没有记录梦境</text>
+    <text class="empty-subtitle">点击上方按钮开始记录你的第一个梦</text>
+  </view>
+
+  <view class="loading ethereal-fade" wx:if="{{loading}}">
+    <view class="loading-glow"></view>
+    <text>加载中...</text>
+  </view>
+  
+  <view class="loading loading-more ethereal-fade" wx:elif="{{hasMore}}" bindtap="loadMore">
+    <text>加载更多</text>
+    <view class="more-glow"></view>
+  </view>
 </view>

@@ -1,187 +1,202 @@
-// index.js
+// pages/index/index.js
+const app = getApp();
+
 Page({
   data: {
-    showTip: false,
-    powerList: [
-      {
-        title: '云托管',
-        tip: '不限语言的全托管容器服务',
-        showItem: false,
-        item: [
-          {
-            type: 'cloudbaserun',
-            title: '云托管调用',
-          },
-        ],
-      },
-      {
-        title: '云函数',
-        tip: '安全、免鉴权运行业务代码',
-        showItem: false,
-        item: [
-          {
-            type: 'getOpenId',
-            title: '获取OpenId',
-          },
-          {
-            type: 'getMiniProgramCode',
-            title: '生成小程序码',
-          },
-        ],
-      },
-      {
-        title: '数据库',
-        tip: '安全稳定的文档型数据库',
-        showItem: false,
-        item: [
-          {
-            type: 'createCollection',
-            title: '创建集合',
-          },
-          {
-            type: 'selectRecord',
-            title: '增删改查记录',
-          },
-          // {
-          //   title: '聚合操作',
-          //   page: 'sumRecord',
-          // },
-        ],
-      },
-      {
-        title: '云存储',
-        tip: '自带CDN加速文件存储',
-        showItem: false,
-        item: [
-          {
-            type: 'uploadFile',
-            title: '上传文件',
-          },
-        ],
-      },
-      // {
-      //   type: 'singleTemplate',
-      //   title: '云模板',
-      //   tip: '基于页面模板，快速配置、搭建小程序页面',
-      //   tag: 'new',
-      // },
-      // {
-      //   type: 'cloudBackend',
-      //   title: '云后台',
-      //   tip: '开箱即用的小程序后台管理系统',
-      // },
-      {
-        title: '拓展能力-AI',
-        tip: '云开发 AI 拓展能力',
-        showItem: false,
-        item: [
-          {
-            type: 'model-guide',
-            title: '大模型对话指引'
-          },
-        ],
-      },
-    ],
-    haveCreateCollection: false,
-    title: "",
-    content: ""
-  },
-  onClickPowerInfo(e) {
-    const app = getApp()
-    if(!app.globalData.env) {
-      wx.showModal({
-        title: '提示',
-        content: '请在 `miniprogram/app.js` 中正确配置 `env` 参数'
-      })
-      return 
-    }
-    console.log("click e", e)
-    const index = e.currentTarget.dataset.index;
-    const powerList = this.data.powerList;
-    const selectedItem = powerList[index];
-    console.log("selectedItem", selectedItem)
-    if (selectedItem.link) {
-      wx.navigateTo({
-        url: `../web/index?url=${selectedItem.link}&title=${selectedItem.title}`,
-      });
-    } else if (selectedItem.type) {
-      console.log("selectedItem", selectedItem)
-      wx.navigateTo({
-        url: `/pages/example/index?envId=${this.data.selectedEnv?.envId}&type=${selectedItem.type}`,
-      });
-    } else if (selectedItem.page) {
-      wx.navigateTo({
-        url: `/pages/${selectedItem.page}/index`,
-      });
-    } else if (
-      selectedItem.title === '数据库' &&
-      !this.data.haveCreateCollection
-    ) {
-      this.onClickDatabase(powerList,selectedItem);
-    } else {
-      selectedItem.showItem = !selectedItem.showItem;
-      this.setData({
-        powerList,
-      });
-    }
+    dreams: [],
+    groupedDreams: [], // 按日期分组的梦境
+    selectedMonth: '',
+    selectedMonthStr: '',
+    page: 1,
+    pageSize: 10,
+    loading: false,
+    hasMore: true
   },
 
-  jumpPage(e) {
-    const { type, page } = e.currentTarget.dataset;
-    console.log("jump page", type, page)
-    if (type) {
-      wx.navigateTo({
-        url: `/pages/example/index?envId=${this.data.selectedEnv?.envId}&type=${type}`,
-      });
-    } else {
-      wx.navigateTo({
-        url: `/pages/${page}/index?envId=${this.data.selectedEnv?.envId}`,
-      });
+  onLoad: function () {
+    this.setDefaultMonth();
+    if (!app.requireLogin('/pages/index/index')) {
+      return;
     }
+    this.loadDreams();
   },
 
-  onClickDatabase(powerList,selectedItem) {
-    wx.showLoading({
-      title: '',
+  onShow: function () {
+    if (!app.requireLogin('/pages/index/index')) {
+      return;
+    }
+    this.setData({
+      page: 1,
+      dreams: [],
+      groupedDreams: []
     });
-    wx.cloud
-      .callFunction({
-        name: 'quickstartFunctions',
-        data: {
-          type: 'createCollection',
-        },
-      })
-      .then((resp) => {
-        if (resp.result.success) {
-          this.setData({
-            haveCreateCollection: true,
-          });
-        }
-        selectedItem.showItem = !selectedItem.showItem;
-        this.setData({
-          powerList,
-        });
-        wx.hideLoading();
-      })
-      .catch((e) => {
-        wx.hideLoading();
-        const { errCode, errMsg } = e
-        if (errMsg.includes('Environment not found')) {
-          this.setData({
-            showTip: true,
-            title: "云开发环境未找到",
-            content: "如果已经开通云开发，请检查环境ID与 `miniprogram/app.js` 中的 `env` 参数是否一致。"
-          });
-          return
-        }
-        if (errMsg.includes('FunctionName parameter could not be found')) {
-          this.setData({
-            showTip: true,
-            title: "请上传云函数",
-            content: "在'cloudfunctions/quickstartFunctions'目录右键，选择【上传并部署-云端安装依赖】，等待云函数上传完成后重试。"
-          });
-          return
-        }
-      });
+    this.loadDreams();
   },
+
+  setDefaultMonth: function () {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const monthStr = `${year}年${month}月`;
+    this.setData({
+      selectedMonth: `${year}-${month.toString().padStart(2, '0')}`,
+      selectedMonthStr: monthStr
+    });
+  },
+
+  loadDreams: function () {
+    if (this.data.loading) return;
+    
+    this.setData({ loading: true });
+    
+    wx.cloud.callFunction({
+      name: 'getDreams',
+      data: {
+        page: this.data.page,
+        pageSize: this.data.pageSize
+      }
+    }).then(res => {
+      this.setData({ loading: false });
+      
+      if (res.result.success) {
+        const dreams = res.result.data;
+        const newDreams = this.data.page === 1 ? dreams : [...this.data.dreams, ...dreams];
+        const groupedDreams = this.groupDreamsByDate(newDreams);
+        
+        this.setData({
+          dreams: newDreams,
+          groupedDreams: groupedDreams,
+          hasMore: dreams.length === this.data.pageSize
+        });
+      } else {
+        wx.showToast({
+          title: '加载失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      this.setData({ loading: false });
+      console.error('加载梦境列表失败:', err);
+      wx.showToast({
+        title: '网络错误',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 按日期分组梦境
+  groupDreamsByDate: function (dreams) {
+    const groups = [];
+    let currentGroup = null;
+    
+    dreams.forEach((dream, index) => {
+      // 防御性处理：确保 date 字段存在
+      const rawDate = dream.date || dream.createdAt || new Date().toISOString();
+      const dateKey = typeof rawDate === 'string' 
+        ? rawDate.split('T')[0] 
+        : new Date(rawDate).toISOString().split('T')[0];
+      
+      // 生成日期显示字符串
+      const dateObj = new Date(rawDate);
+      const dateStr = dream.dateStr || dateObj.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      
+      if (!currentGroup || currentGroup.dateKey !== dateKey) {
+        currentGroup = {
+          dateKey: dateKey,
+          dateStr: dateStr,
+          dreams: [],
+          isFirst: groups.length === 0
+        };
+        groups.push(currentGroup);
+      }
+      
+      currentGroup.dreams.push({
+        ...dream,
+        index: index + 1
+      });
+    });
+    
+    return groups;
+  },
+
+  onMonthChange: function (e) {
+    const month = e.detail.value;
+    if (!month) return;
+    
+    const year = month.split('-')[0];
+    const monthNum = parseInt(month.split('-')[1]);
+    
+    this.setData({
+      selectedMonth: month,
+      selectedMonthStr: `${year}年${monthNum}月`,
+      page: 1,
+      dreams: [],
+      groupedDreams: []
+    });
+    
+    this.loadDreams();
+  },
+
+  goToCreateDream: function () {
+    if (!app.requireLogin('/pages/dream/dream')) {
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/dream/dream'
+    });
+  },
+
+  goToInterpret: function () {
+    if (!app.requireLogin('/pages/interpret/interpret')) {
+      return;
+    }
+    if (this.data.dreams.length === 0) {
+      wx.showToast({
+        title: '请先记录梦境',
+        icon: 'none'
+      });
+      return;
+    }
+    wx.navigateTo({
+      url: '/pages/interpret/interpret'
+    });
+  },
+
+  viewDream: function (e) {
+    const id = e.currentTarget.dataset.id;
+    wx.navigateTo({
+      url: `/pages/dream/dream?id=${id}`
+    });
+  },
+
+  previewImage: function (e) {
+    const src = e.currentTarget.dataset.src;
+    wx.previewImage({
+      current: src,
+      urls: this.data.dreams.find(d => d.images.includes(src))?.images || [src]
+    });
+  },
+
+  loadMore: function () {
+    if (this.data.hasMore) {
+      this.setData({
+        page: this.data.page + 1
+      });
+      this.loadDreams();
+    }
+  },
+
+  onPullDownRefresh: function () {
+    this.setData({
+      page: 1,
+      dreams: [],
+      groupedDreams: []
+    });
+    this.loadDreams();
+    wx.stopPullDownRefresh();
+  }
 });

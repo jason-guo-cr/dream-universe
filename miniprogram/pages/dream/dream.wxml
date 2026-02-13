@@ -1,0 +1,58 @@
+<!--pages/dream/dream.wxml-->
+<view class="container">
+  <view class="card">
+    <view class="title">梦境日期</view>
+    <picker mode="date" value="{{date}}" bindchange="onDateChange">
+      <view class="date-display">
+        <text>{{dateStr}}</text>
+        <text class="hint">（默认为昨天）</text>
+      </view>
+    </picker>
+  </view>
+
+  <view class="card">
+    <view class="title">梦境内容</view>
+    <view class="field-tip">将你记得的片段、场景和情绪写下来</view>
+    <textarea 
+      class="input content-input"
+      placeholder="记录你的梦境..."
+      maxlength="-1"
+      bindinput="onContentInput"
+      value="{{content}}"
+    ></textarea>
+    <view class="char-count">{{content.length}} 字</view>
+  </view>
+
+  <view class="card" wx:if="{{images.length > 0}}">
+    <view class="title">生成的图片</view>
+    <view class="image-grid">
+      <image wx:for="{{images}}" wx:key="*this" src="{{item}}" mode="aspectFill" bindtap="previewImage" data-src="{{item}}"></image>
+    </view>
+  </view>
+
+  <view class="card" wx:if="{{interpretation}}">
+    <view class="title">A公解梦</view>
+    <view class="interpretation">
+      <text>{{interpretation}}</text>
+    </view>
+  </view>
+
+  <view class="actions" wx:if="{{!interpretation}}">
+    <view class="btn btn-primary" bindtap="createDream" disabled="{{!content || loading}}">
+      {{loading ? '生成中...' : '生成图片并保存'}}
+    </view>
+  </view>
+
+  <view class="actions" wx:if="{{interpretation && !interpreting}}">
+    <view class="btn btn-outline" bindtap="goToInterpret" data-id="{{dreamId}}">
+      单独解梦
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{loading}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text>{{generatingText}}</text>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "openapi": [
+      "llm.chat",
+      "aiArt.generate"
+    ]
+  },
+  "timeout": 900,
+  "memorySize": 512
+}

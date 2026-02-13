@@ -1,0 +1,69 @@
+<!--pages/interpret/interpret.wxml-->
+<view class="container">
+  <view class="card intro">
+    <view class="title">A公解梦</view>
+    <view class="intro-text">
+      选择1-3条梦境，让AI结合梦境内容进行深度解析
+    </view>
+  </view>
+
+  <view class="dream-list" wx:if="{{!interpretation}}">
+    <view class="card dream-item {{item.selected ? 'selected' : ''}}" 
+          wx:for="{{dreams}}" 
+          wx:key="_id"
+          bindtap="toggleSelect" 
+          data-index="{{index}}">
+      <view class="checkbox">
+        <view class="check-icon" wx:if="{{item.selected}}">✓</view>
+      </view>
+      <view class="dream-info">
+        <view class="dream-date">{{item.dateStr}}</view>
+        <view class="dream-content">{{item.content}}</view>
+        <view class="dream-images" wx:if="{{item.images.length > 0}}">
+          <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" mode="aspectFill"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{dreams.length === 0 && !loading}}">
+      <text>暂无可解梦的梦境</text>
+    </view>
+  </view>
+
+  <view class="actions" wx:if="{{!interpretation && selectedIds.length > 0}}">
+    <view class="btn btn-primary" bindtap="startInterpret" disabled="{{selectedIds.length === 0 || selectedIds.length > 3 || interpreting}}">
+      {{buttonText}}
+    </view>
+  </view>
+
+  <view class="card result" wx:if="{{interpretation}}">
+    <view class="title">解梦结果</view>
+    <view class="interpretation-content">
+      <text>{{interpretation}}</text>
+    </view>
+    
+    <view class="interpreted-dreams">
+      <view class="interpreted-item" wx:for="{{interpretedDreams}}" wx:key="_id">
+        <view class="mini-date">{{item.dateStr}}</view>
+        <view class="mini-content">{{item.content}}</view>
+        <view class="mini-images" wx:if="{{item.images.length > 0}}">
+          <image wx:for="{{item.images}}" wx:for-item="img" wx:key="*this" src="{{img}}" mode="aspectFill"></image>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="actions" wx:if="{{interpretation}}">
+    <view class="btn btn-outline" bindtap="resetInterpret">
+      重新选择
+    </view>
+  </view>
+
+  <view class="mask" wx:if="{{interpreting}}">
+    <view class="loading-content">
+      <view class="loading-spinner"></view>
+      <text>正在解析梦境...</text>
+      <text class="loading-tip">这可能需要一些时间</text>
+    </view>
+  </view>
+</view>

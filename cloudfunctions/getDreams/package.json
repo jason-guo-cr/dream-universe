@@ -1,0 +1,11 @@
+{
+  "name": "getDreams",
+  "version": "1.0.0",
+  "description": "获取梦境列表",
+  "main": "index.js",
+  "author": "Dream Universe",
+  "license": "MIT",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

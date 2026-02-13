@@ -1,16 +1,39 @@
 {
   "pages": [
+    "pages/login/login",
     "pages/index/index",
-    "pages/example/index"
+    "pages/dream/dream",
+    "pages/interpret/interpret",
+    "pages/profile/profile"
   ],
   "window": {
-    "backgroundColor": "#F6F6F6",
+    "backgroundColor": "#050a12",
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#F6F6F6",
-    "navigationBarTitleText": "云开发 QuickStart",
-    "navigationBarTextStyle": "black"
+    "navigationBarBackgroundColor": "#0e1d2c",
+    "navigationBarTitleText": "梦宙编年史",
+    "navigationBarTextStyle": "white"
   },
   "sitemapLocation": "sitemap.json",
   "style": "v2",
+  "tabBar": {
+    "color": "#8eb7d7",
+    "selectedColor": "#57b9ff",
+    "backgroundColor": "#0c1824",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "梦境",
+        "iconPath": "images/icons/dream.png",
+        "selectedIconPath": "images/icons/dream-active.png"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的",
+        "iconPath": "images/icons/user.png",
+        "selectedIconPath": "images/icons/user-active.png"
+      }
+    ]
+  },
   "lazyCodeLoading": "requiredComponents"
 }
