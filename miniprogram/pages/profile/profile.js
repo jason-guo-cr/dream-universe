@@ -1,4 +1,3 @@
-// pages/profile/profile.js
 const app = getApp();
 
 Page({
@@ -7,6 +6,10 @@ Page({
     tempNickname: '',
     editingNickname: false,
     showAbout: false,
+    showFeedback: false,
+    feedbackContent: '',
+    feedbackContact: '',
+    submittingFeedback: false,
     stats: {
       totalDreams: 0,
       interpretedDreams: 0,
@@ -14,64 +17,78 @@ Page({
     }
   },
 
-  onShow: function () {
+  onShow() {
     if (!app.requireLogin('/pages/profile/profile')) {
       return;
     }
+
+    this.syncTabBar();
     this.loadUserInfo();
     this.loadStats();
   },
 
-  loadUserInfo: function () {
-    const userInfo = app.getUserInfo() || wx.getStorageSync('userInfo');
-    if (userInfo) {
-      this.setData({ userInfo });
-    } else {
-      app.login().then(info => {
-        this.setData({ userInfo: info });
-      }).catch(() => {
-        wx.showToast({
-          title: '登录失败',
-          icon: 'none'
-        });
-      });
+  syncTabBar() {
+    if (typeof this.getTabBar !== 'function') {
+      return;
+    }
+
+    const tabBar = this.getTabBar();
+    if (tabBar) {
+      tabBar.setData({ selected: 1 });
     }
   },
 
-  loadStats: function () {
+  loadUserInfo() {
+    const userInfo = app.getUserInfo() || wx.getStorageSync('userInfo');
+    if (userInfo) {
+      this.setData({ userInfo });
+      return;
+    }
+
+    app.login().then((info) => {
+      this.setData({ userInfo: info });
+    }).catch(() => {
+      wx.showToast({
+        title: '登录失败',
+        icon: 'none'
+      });
+    });
+  },
+
+  loadStats() {
     wx.cloud.callFunction({
       name: 'getDreams',
       data: {
         page: 1,
         pageSize: 1000
       }
-    }).then(res => {
-      if (res.result.success) {
-        const dreams = res.result.data;
+    }).then((res) => {
+      if (res.result && res.result.success) {
+        const dreams = res.result.data || [];
         const stats = {
           totalDreams: dreams.length,
-          interpretedDreams: dreams.filter(d => d.interpretation).length,
-          totalImages: dreams.reduce((sum, d) => sum + (d.images?.length || 0), 0)
+          interpretedDreams: dreams.filter((dream) => dream.interpretation).length,
+          totalImages: dreams.reduce((sum, dream) => sum + (dream.images?.length || 0), 0)
         };
         this.setData({ stats });
       }
     });
   },
 
-  editNickname: function () {
+  editNickname() {
     this.setData({
       tempNickname: this.data.userInfo.nickname,
       editingNickname: true
     });
   },
 
-  onNicknameInput: function (e) {
+  onNicknameInput(e) {
     this.setData({
       tempNickname: e.detail.value
     });
   },
 
-  saveNickname: function () {
+  saveNickname() {
     const nickname = this.data.tempNickname.trim();
     if (!nickname) {
       wx.showToast({
@@ -80,18 +97,21 @@ Page({
       });
       return;
     }
-    
+
     wx.cloud.callFunction({
       name: 'updateUser',
       data: {
-        nickname: nickname
+        nickname
       }
-    }).then(res => {
-      if (res.result.success) {
-        const userInfo = this.data.userInfo;
-        userInfo.nickname = nickname;
+    }).then((res) => {
+      if (res.result && res.result.success) {
+        const userInfo = {
+          ...this.data.userInfo,
+          nickname
+        };
+
         this.setData({
-          userInfo: userInfo,
+          userInfo,
           editingNickname: false
         });
         wx.setStorageSync('userInfo', userInfo);
@@ -103,44 +123,126 @@ Page({
     });
   },
 
-  cancelEdit: function () {
+  cancelEdit() {
     this.setData({
       editingNickname: false
     });
   },
 
-  goToAllDreams: function () {
+  onFeedbackInput(e) {
+    this.setData({
+      feedbackContent: e.detail.value
+    });
+  },
+
+  onContactInput(e) {
+    this.setData({
+      feedbackContact: e.detail.value
+    });
+  },
+
+  submitFeedback() {
+    const content = String(this.data.feedbackContent || '').trim();
+    const contact = String(this.data.feedbackContact || '').trim();
+
+    if (!content) {
+      wx.showToast({
+        title: '请输入反馈内容',
+        icon: 'none'
+      });
+      return;
+    }
+
+    if (this.data.submittingFeedback) {
+      return;
+    }
+
+    this.setData({ submittingFeedback: true });
+
+    wx.cloud.callFunction({
+      name: 'saveFeedback',
+      data: {
+        content,
+        contact,
+        nickname: this.data.userInfo?.nickname || '',
+        source: 'profile'
+      }
+    }).then((res) => {
+      this.setData({ submittingFeedback: false });
+
+      if (!res.result || !res.result.success) {
+        wx.showToast({
+          title: (res.result && res.result.error) || '提交失败',
+          icon: 'none'
+        });
+        return;
+      }
+
+      this.setData({
+        feedbackContent: '',
+        feedbackContact: '',
+        showFeedback: false
+      });
+      wx.showToast({
+        title: '反馈已提交',
+        icon: 'success'
+      });
+    }).catch((err) => {
+      this.setData({ submittingFeedback: false });
+      console.error('submit feedback failed:', err);
+      wx.showToast({
+        title: '网络错误',
+        icon: 'none'
+      });
+    });
+  },
+
+  goToAllDreams() {
     wx.switchTab({
       url: '/pages/index/index'
     });
   },
 
-  clearCache: function () {
+  clearCache() {
     wx.showModal({
       title: '清除缓存',
       content: '确定要清除本地缓存吗？',
       success: (res) => {
-        if (res.confirm) {
-          app.logout();
-          wx.showToast({
-            title: '已退出登录',
-            icon: 'success'
-          });
-          setTimeout(() => {
-            wx.navigateTo({
-              url: '/pages/login/login?redirect=%2Fpages%2Findex%2Findex'
-            });
-          }, 600);
+        if (!res.confirm) {
+          return;
         }
+
+        app.logout();
+        wx.showToast({
+          title: '已退出登录',
+          icon: 'success'
+        });
+        setTimeout(() => {
+          wx.navigateTo({
+            url: '/pages/login/login?redirect=%2Fpages%2Findex%2Findex'
+          });
+        }, 600);
       }
     });
   },
 
-  showAbout: function () {
+  showAbout() {
     this.setData({ showAbout: true });
   },
 
-  hideAbout: function () {
+  hideAbout() {
     this.setData({ showAbout: false });
+  },
+
+  showFeedback() {
+    this.setData({ showFeedback: true });
+  },
+
+  hideFeedback() {
+    if (this.data.submittingFeedback) {
+      return;
+    }
+
+    this.setData({ showFeedback: false });
   }
 });

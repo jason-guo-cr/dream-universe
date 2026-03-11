@@ -1,19 +1,18 @@
-<!--pages/dream/dream.wxml-->
 <view class="container">
   <view class="card">
     <view class="title">梦境日期</view>
     <picker mode="date" value="{{date}}" bindchange="onDateChange">
       <view class="date-display">
         <text>{{dateStr}}</text>
-        <text class="hint">（默认为昨天）</text>
+        <text class="hint">（默认昨天）</text>
       </view>
     </picker>
   </view>
 
   <view class="card">
     <view class="title">梦境内容</view>
-    <view class="field-tip">将你记得的片段、场景和情绪写下来</view>
-    <textarea 
+    <view class="field-tip">记录你记得的片段、场景和情绪</view>
+    <textarea
       class="input content-input"
       placeholder="记录你的梦境..."
       maxlength="-1"
@@ -21,6 +20,48 @@
       value="{{content}}"
     ></textarea>
     <view class="char-count">{{content.length}} 字</view>
+  </view>
+
+  <view class="card settings-card">
+    <view class="title">生成设置</view>
+    <view class="split-row">
+      <view class="split-label-wrap">
+        <text class="split-label">自定义图片个数与分镜</text>
+        <text class="split-sub-label">开启后可逐张定义画面内容与提示词</text>
+      </view>
+      <switch class="split-switch" color="#57b9ff" checked="{{useCustomSplit}}" bindchange="onToggleCustomSplit" />
+    </view>
+
+    <view wx:if="{{useCustomSplit}}">
+      <picker mode="selector" range="{{countOptions}}" value="{{imageCountIndex}}" bindchange="onImageCountChange">
+        <view class="selector-row">
+          <view class="selector-main">
+            <text class="selector-label">图片数量</text>
+            <text class="selector-value">{{imageCount}} 张</text>
+          </view>
+          <text class="selector-arrow">›</text>
+        </view>
+      </picker>
+
+      <view class="scene-list">
+        <view class="scene-item" wx:for="{{sceneInputs}}" wx:key="index">
+          <view class="scene-head">
+            <view class="scene-title">第 {{index + 1}} 张图内容</view>
+            <view class="scene-count">{{item.length || 0}}/300</view>
+          </view>
+          <textarea
+            class="input scene-input"
+            placeholder="请输入这一张图对应的梦境内容或英文提示词"
+            maxlength="300"
+            bindinput="onSceneInput"
+            data-index="{{index}}"
+            value="{{item}}"
+          ></textarea>
+        </view>
+      </view>
+    </view>
+
+    <view class="field-tip auto-tip" wx:else>未开启时由 AI 自动理解并切分图片数量与内容</view>
   </view>
 
   <view class="card" wx:if="{{images.length > 0}}">
@@ -31,22 +72,26 @@
   </view>
 
   <view class="card" wx:if="{{interpretation}}">
-    <view class="title">A公解梦</view>
+    <view class="title">AI解梦</view>
     <view class="interpretation">
       <text>{{interpretation}}</text>
     </view>
   </view>
 
-  <view class="actions" wx:if="{{!interpretation}}">
-    <view class="btn btn-primary" bindtap="createDream" disabled="{{!content || loading}}">
-      {{loading ? '生成中...' : '生成图片并保存'}}
+  <view class="actions">
+    <view class="btn btn-primary" bindtap="generateDreamImages" disabled="{{!content || loading}}">
+      生成梦境图片
     </view>
   </view>
 
-  <view class="actions" wx:if="{{interpretation && !interpreting}}">
-    <view class="btn btn-outline" bindtap="goToInterpret" data-id="{{dreamId}}">
-      单独解梦
+  <view class="actions">
+    <view class="btn btn-outline" bindtap="saveDream" disabled="{{!content || loading}}">
+      保存梦境
     </view>
+  </view>
+
+  <view class="actions" wx:if="{{dreamId}}">
+    <view class="btn btn-outline" bindtap="goToInterpret">AI解梦</view>
   </view>
 
   <view class="mask" wx:if="{{loading}}">

@@ -6,7 +6,7 @@
   "author": "Dream Universe",
   "license": "MIT",
   "dependencies": {
-    "@cloudbase/node-sdk": "^3.16.0",
-    "wx-server-sdk": "~2.6.3"
+    "@cloudbase/node-sdk": "3.16.0",
+    "wx-server-sdk": "2.6.3"
   }
 }

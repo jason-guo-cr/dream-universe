@@ -1,0 +1,11 @@
+﻿{
+  "name": "saveDream",
+  "version": "1.0.0",
+  "description": "save or update dream",
+  "main": "index.js",
+  "author": "Dream Universe",
+  "license": "MIT",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

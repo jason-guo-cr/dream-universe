@@ -1,0 +1,84 @@
+.tabbar-shell {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  pointer-events: none;
+}
+
+.tabbar-panel {
+  height: calc(118rpx + env(safe-area-inset-bottom));
+  padding: 14rpx 26rpx calc(14rpx + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: rgba(7, 16, 27, 0.94);
+  border-top: 1rpx solid rgba(98, 156, 208, 0.22);
+  box-shadow: 0 -12rpx 30rpx rgba(2, 8, 18, 0.35);
+  box-sizing: border-box;
+  backdrop-filter: blur(18rpx);
+  pointer-events: auto;
+}
+
+.tabbar-item {
+  width: 176rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6rpx;
+  color: rgba(160, 196, 223, 0.78);
+}
+
+.tabbar-item__icon {
+  width: 48rpx;
+  height: 48rpx;
+}
+
+.tabbar-item__label {
+  font-size: 22rpx;
+  line-height: 1.1;
+}
+
+.tabbar-item--active .tabbar-item__label {
+  color: #9fe3ff;
+}
+
+.tabbar-create {
+  position: relative;
+  margin-bottom: 2rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.tabbar-create__core {
+  width: 94rpx;
+  height: 94rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(120% 120% at 30% 30%, rgba(97, 234, 216, 0.32) 0%, rgba(97, 234, 216, 0) 48%),
+    linear-gradient(145deg, rgba(19, 63, 102, 0.98) 0%, rgba(13, 44, 74, 0.98) 100%);
+  border: 1rpx solid rgba(113, 213, 255, 0.54);
+  box-shadow:
+    0 0 0 8rpx rgba(7, 16, 27, 0.94),
+    0 14rpx 26rpx rgba(2, 8, 18, 0.34);
+}
+
+.tabbar-create__icon {
+  color: #effaff;
+  font-size: 48rpx;
+  line-height: 1;
+  text-shadow: 0 0 12rpx rgba(126, 228, 255, 0.36);
+}
+
+.tabbar-create__label {
+  font-size: 22rpx;
+  color: #d7f6ff;
+  line-height: 1.1;
+}

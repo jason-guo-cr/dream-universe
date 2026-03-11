@@ -1,0 +1,38 @@
+<view class="tabbar-shell">
+  <view class="tabbar-panel">
+    <view
+      class="tabbar-item {{selected === 0 ? 'tabbar-item--active' : ''}}"
+      data-index="{{0}}"
+      data-path="{{list[0].pagePath}}"
+      bindtap="switchTab"
+    >
+      <image
+        class="tabbar-item__icon"
+        src="{{selected === 0 ? list[0].selectedIconPath : list[0].iconPath}}"
+        mode="aspectFit"
+      />
+      <text class="tabbar-item__label">{{list[0].text}}</text>
+    </view>
+
+    <view class="tabbar-create" bindtap="createDream">
+      <view class="tabbar-create__core">
+        <text class="tabbar-create__icon">+</text>
+      </view>
+      <text class="tabbar-create__label">记录梦境</text>
+    </view>
+
+    <view
+      class="tabbar-item {{selected === 1 ? 'tabbar-item--active' : ''}}"
+      data-index="{{1}}"
+      data-path="{{list[1].pagePath}}"
+      bindtap="switchTab"
+    >
+      <image
+        class="tabbar-item__icon"
+        src="{{selected === 1 ? list[1].selectedIconPath : list[1].iconPath}}"
+        mode="aspectFit"
+      />
+      <text class="tabbar-item__label">{{list[1].text}}</text>
+    </view>
+  </view>
+</view>

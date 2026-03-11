@@ -1,8 +1,9 @@
-// cloudfunctions/createDream/index.js
-const cloud = require('wx-server-sdk');
+﻿const cloud = require('wx-server-sdk');
 const tcb = require('@cloudbase/node-sdk');
+const https = require('https');
+const crypto = require('crypto');
+
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
-const db = cloud.database();
 
 const MAX_SCENE_COUNT = 3;
 const SINGLE_SCENE_MAX_LEN = 30;
@@ -34,7 +35,7 @@ function normalizePromptText(text) {
   return String(text || '')
     .toLowerCase()
     .replace(/[\u3000\s]+/g, ' ')
-    .replace(/["'“”‘’`.,!?;:，。！？；：()（）\[\]{}<>]/g, ' ')
+    .replace(/["'“”‘’.,!?;:，。！？；：（）\[\]{}<>]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -139,7 +140,7 @@ function parseScenePlan(rawText) {
         prompts = prompts.concat(parsed.prompts.filter(Boolean));
       }
     } catch (err) {
-      console.error('解析分镜JSON失败:', err && err.message ? err.message : err);
+      console.error('parse scene plan failed:', err && err.message ? err.message : err);
     }
   }
 
@@ -173,37 +174,126 @@ function shouldForceSingleScene(content) {
   return false;
 }
 
-exports.main = async (event, context) => {
+function getImageExtension(url) {
+  try {
+    const parsedUrl = new URL(url);
+    const match = parsedUrl.pathname.match(/\.(png|jpg|jpeg|webp)$/i);
+    return match && match[1] ? match[1].toLowerCase() : 'png';
+  } catch (err) {
+    return 'png';
+  }
+}
+
+function downloadImageBuffer(url) {
+  return new Promise((resolve, reject) => {
+    const req = https.get(url, res => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`download image failed, status: ${res.statusCode}`));
+        res.resume();
+        return;
+      }
+
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+      res.on('error', reject);
+    });
+
+    req.setTimeout(15000, () => {
+      req.destroy(new Error('download image timeout'));
+    });
+    req.on('error', reject);
+  });
+}
+
+async function persistImageToCloudStorage(imageUrl, openid, index) {
+  const fileContent = await downloadImageBuffer(imageUrl);
+  const ext = getImageExtension(imageUrl);
+  const fileKey = crypto.randomBytes(6).toString('hex');
+  const cloudPath = `dreams/${openid}/${Date.now()}-${index + 1}-${fileKey}.${ext}`;
+
+  const uploadRes = await cloud.uploadFile({
+    cloudPath,
+    fileContent
+  });
+
+  return uploadRes && uploadRes.fileID ? uploadRes.fileID : '';
+}
+
+function normalizeCustomScenes(customScenes) {
+  if (!Array.isArray(customScenes)) {
+    return [];
+  }
+  return dedupePromptList(
+    customScenes
+      .map(scene => String(scene || '').trim())
+      .filter(Boolean)
+  ).slice(0, MAX_SCENE_COUNT);
+}
+
+exports.main = async (event) => {
   const wxContext = cloud.getWXContext();
   const openid = wxContext.OPENID;
   const envId = wxContext.ENV || process.env.TCB_ENV;
-  const { content, date } = event;
-  
+  const { content, customScenes } = event;
+
+  if (!String(content || '').trim()) {
+    return {
+      success: false,
+      error: 'content is required'
+    };
+  }
+
   try {
     let prompts = [];
-    let images = [];
-    
+    const images = [];
+
     try {
       const ai = createAI(envId);
-      const textModel = ai.createModel('hunyuan-exp');
       const imageModel = ai.createImageModel('hunyuan-image');
+      prompts = normalizeCustomScenes(customScenes);
 
-      const promptResult = await textModel.generateText({
-        model: 'hunyuan-2.0-instruct-20251111',
-        messages: [{
-          role: 'user',
-          content: `你是梦境分镜策划师。请根据用户梦境内容决定需要生成几张图（1~3张），并输出严格JSON。\n\n梦境内容：${content}\n\n判定规则：\n1. 单一场景或极短描述（通常<=30字）默认1张。\n2. 存在明显前后转场/两个独立空间才用2张。\n3. 只有当确实存在三个不可合并的连续分镜时才用3张。\n4. 不要为了凑数生成多场景。\n\n输出格式（只允许JSON，不要解释）：\n{\n  "sceneCount": 1,\n  "scenes": [\n    { "id": 1, "prompt": "English prompt for image generation" }\n  ]\n}\n\n要求：\n- prompt必须是英文\n- 多个prompt必须在主体、构图、景别或光线上明显不同\n- 不要输出重复或近似重复prompt\n- sceneCount范围必须是1~3`
-        }]
-      });
+      if (prompts.length === 0) {
+        const textModel = ai.createModel('hunyuan-exp');
+        const promptResult = await textModel.generateText({
+          model: 'hunyuan-2.0-instruct-20251111',
+          messages: [{
+            role: 'user',
+            content: `You are a storyboard planner for dream visualization.
+Given the dream content below, decide whether to generate 1-3 images and split scenes only when necessary.
 
-      const promptText = (promptResult && promptResult.text ? promptResult.text : '');
-      const plan = parseScenePlan(promptText);
-      let sceneCount = plan.sceneCount;
-      if (shouldForceSingleScene(content)) {
-        sceneCount = 1;
+Dream content: ${content}
+
+Rules:
+1. Use 1 image for single short scene (typically <= 30 Chinese chars).
+2. Use 2 images only when there is clear scene transition.
+3. Use 3 images only when all 3 scenes are necessary and distinct.
+4. Never split just to hit a higher count.
+
+Output strict JSON only:
+{
+  "sceneCount": 1,
+  "scenes": [
+    { "id": 1, "prompt": "English prompt for image generation" }
+  ]
+}
+
+Constraints:
+- prompt must be in English
+- prompts must be visually distinct
+- no duplicated or near-duplicate prompts
+- sceneCount must be 1-3`
+          }]
+        });
+
+        const promptText = (promptResult && promptResult.text ? promptResult.text : '');
+        const plan = parseScenePlan(promptText);
+        let sceneCount = plan.sceneCount;
+        if (shouldForceSingleScene(content)) {
+          sceneCount = 1;
+        }
+        prompts = plan.prompts.slice(0, sceneCount);
       }
-
-      prompts = plan.prompts.slice(0, sceneCount);
 
       if (prompts.length === 0) {
         prompts = [
@@ -211,57 +301,38 @@ exports.main = async (event, context) => {
         ];
       }
 
-      if (prompts.length > 0) {
-        for (let index = 0; index < prompts.length; index += 1) {
-          const prompt = prompts[index];
-          try {
-            const seed = Math.floor(Math.random() * 4294967295) + index + 1;
-            const imageRes = await imageModel.generateImage({
-              model: 'hunyuan-image',
-              prompt,
-              size: '1024x1024',
-              version: 'v1.9',
-              seed
-            });
+      for (let index = 0; index < prompts.length; index += 1) {
+        const prompt = prompts[index];
+        try {
+          const seed = Math.floor(Math.random() * 4294967295) + index + 1;
+          const imageRes = await imageModel.generateImage({
+            model: 'hunyuan-image',
+            prompt,
+            size: '1024x1024',
+            version: 'v1.9',
+            seed
+          });
 
-            const imageUrl = imageRes && imageRes.data && imageRes.data[0] && imageRes.data[0].url;
-            if (imageUrl) {
-              images.push(imageUrl);
+          const imageUrl = imageRes && imageRes.data && imageRes.data[0] && imageRes.data[0].url;
+          if (imageUrl) {
+            const fileId = await persistImageToCloudStorage(imageUrl, openid, index);
+            if (fileId) {
+              images.push(fileId);
             }
-          } catch (imgErr) {
-            console.error('生成图片失败:', imgErr);
           }
+        } catch (imgErr) {
+          console.error('generate image failed:', imgErr && imgErr.message ? imgErr.message : imgErr);
         }
       }
     } catch (aiErr) {
-      console.error('AI服务调用失败:', aiErr && aiErr.message ? aiErr.message : aiErr, aiErr && aiErr.errCode ? `errCode=${aiErr.errCode}` : '');
+      console.error('AI generation failed:', aiErr && aiErr.message ? aiErr.message : aiErr, aiErr && aiErr.errCode ? `errCode=${aiErr.errCode}` : '');
     }
-    
-    const dream = {
-      openid: openid,
-      content: content,
-      date: new Date(date || Date.now() - 86400000),
-      images: images,
-      imagePrompts: prompts,
-      interpretation: '',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    
-    const addRes = await db.collection('dreams').add({
-      data: dream
-    });
-    
+
     return {
       success: true,
       data: {
-        _id: addRes._id,
-        ...dream,
-        dateStr: new Date(dream.date).toLocaleDateString('zh-CN', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric'
-        })
+        images,
+        imagePrompts: prompts
       }
     };
   } catch (err) {

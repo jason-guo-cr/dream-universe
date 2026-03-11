@@ -1,0 +1,11 @@
+{
+  "name": "saveFeedback",
+  "version": "1.0.0",
+  "description": "save user feedback",
+  "main": "index.js",
+  "author": "Dream Universe",
+  "license": "MIT",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

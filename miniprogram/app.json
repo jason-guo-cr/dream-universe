@@ -10,12 +10,13 @@
     "backgroundColor": "#050a12",
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#0e1d2c",
-    "navigationBarTitleText": "梦宙编年史",
+    "navigationBarTitleText": "梦境编年史",
     "navigationBarTextStyle": "white"
   },
   "sitemapLocation": "sitemap.json",
   "style": "v2",
   "tabBar": {
+    "custom": true,
     "color": "#8eb7d7",
     "selectedColor": "#57b9ff",
     "backgroundColor": "#0c1824",
